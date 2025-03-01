@@ -123,7 +123,7 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _InnerRadius: 1.4
-    - _Iterations: 150
+    - _Iterations: 170
     - _Mass: 14900000
     - _Metallic: 0
     - _OcclusionStrength: 1
