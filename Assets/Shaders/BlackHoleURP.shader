@@ -406,8 +406,7 @@ Shader "Universal Render Pipeline/Effects/BlackHoleURP"
                 PosToBlackHole = RayPos - BlackHoleRPos;
                 float DistanceToBlackHole = length(PosToBlackHole);
                 float3 NormalizedPosToBlackHole = PosToBlackHole / DistanceToBlackHole;
-                float dotWithNormal = dot(BlackHoleRDiskNormal, PosToBlackHole);
-
+                //float dotWithNormal = dot(BlackHoleRDiskNormal, PosToBlackHole);
                 if (DistanceToBlackHole > 2.5 * OuterRadius && DistanceToBlackHole > LastR && Count > 50)
                 {
                     // FragUv = DirToUV(RayDir);
@@ -434,21 +433,18 @@ Shader "Universal Render Pipeline/Effects/BlackHoleURP"
                 float RayStep = Count == 0 ? RandomStep(FragUv, frac(_Time.y)) : 1.0;
                 RayStep *= 0.15 + 0.25 * saturate(0.5 * (0.5 * DistanceToBlackHole / max(10.0 * Rs, OuterRadius) - 1.0));
 
-                //简化步长计算
+                //步长计算
                 if (DistanceToBlackHole >= 2.0 * OuterRadius)
                 {
                     RayStep *= DistanceToBlackHole;
                 }
+                else if (DistanceToBlackHole >= 1.0 * OuterRadius)
+                {
+                    RayStep *= (Rs * (2.0 * OuterRadius - DistanceToBlackHole) + DistanceToBlackHole * (DistanceToBlackHole - OuterRadius)) / OuterRadius;
+                }
                 else
                 {
-                    float stepMultiplier = max(abs(dotWithNormal), Rs);
-                    RayStep *= DistanceToBlackHole >= OuterRadius
-                  ? (stepMultiplier * (2.0 * OuterRadius - DistanceToBlackHole) + DistanceToBlackHole * (DistanceToBlackHole - OuterRadius)) / OuterRadius
-                  : DistanceToBlackHole >= InterRadius
-                  ? stepMultiplier
-                  : DistanceToBlackHole > 2.0 * Rs
-                  ? (stepMultiplier * (DistanceToBlackHole - 2.0 * Rs) + DistanceToBlackHole * (InterRadius - DistanceToBlackHole)) / (InterRadius - 2.0 * Rs)
-                  : DistanceToBlackHole;
+                    RayStep *= min(Rs, DistanceToBlackHole);
                 }
 
                 RayPos += RayDir * RayStep;
