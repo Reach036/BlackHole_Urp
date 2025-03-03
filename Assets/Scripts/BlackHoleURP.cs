@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -35,11 +36,21 @@ public class BlackHoleUrp : ScriptableRendererFeature
                 TextureWrapMode.Clamp, 
                 name: "_BlackHoleTempTexture"
             );
-            ConfigureTarget(_source);
+            if (_source != null)
+            {
+                ConfigureTarget(_source);
+            }
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+#if UNITY_EDITOR
+            if (!EditorApplication.isPlaying)
+            {
+                return;
+            }
+#endif
+            
             if (!_material || _tempTexture == null) return;
 
             var cmd = CommandBufferPool.Get();
@@ -50,6 +61,7 @@ public class BlackHoleUrp : ScriptableRendererFeature
             }
     
             context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
             CommandBufferPool.Release(cmd);
         }
 
@@ -75,11 +87,7 @@ public class BlackHoleUrp : ScriptableRendererFeature
 
     public override void Create()
     {
-        _renderPass = new CustomRenderPass(settings.material)
-        {
-            // 根据效果需求选择最佳渲染阶段
-            renderPassEvent = RenderPassEvent.BeforeRenderingPostProcessing
-        };
+        _renderPass = new CustomRenderPass(settings.material);
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -87,6 +95,7 @@ public class BlackHoleUrp : ScriptableRendererFeature
         if (settings.material)
         {
             renderer.EnqueuePass(_renderPass);
+            _renderPass.ConfigureInput(ScriptableRenderPassInput.Color);
         }
     }
 
