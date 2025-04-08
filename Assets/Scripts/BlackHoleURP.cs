@@ -56,8 +56,11 @@ public class BlackHoleUrp : ScriptableRendererFeature
             var cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, _profilingSampler))
             {
-                cmd.Blit(_source, _tempTexture, _material);
-                cmd.Blit(_tempTexture, _source);
+                if (_source.rt)
+                {
+                    cmd.Blit(_source, _tempTexture, _material);
+                    cmd.Blit(_tempTexture, _source);
+                }
             }
     
             context.ExecuteCommandBuffer(cmd);
